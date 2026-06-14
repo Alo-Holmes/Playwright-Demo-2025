@@ -1,55 +1,69 @@
 import { test, expect } from '@playwright/test';
-import { login, UserCredentials } from '../utils/auth.utils';
+import { LoginPage } from '../pages/login.page';
+import { InventoryPage } from '../pages/inventory.page';
+import { CartPage } from '../pages/cart.page';
+import { CheckoutPage } from '../pages/checkout.page';
+import { UserCredentials } from '../utils/auth.utils';
 
 test.describe('Checkout Tests', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto('https://www.saucedemo.com/');
-        await login(page, UserCredentials.STANDARD_USER.username, UserCredentials.STANDARD_USER.password);
-    });
+  let loginPage: LoginPage;
+  let inventoryPage: InventoryPage;
+  let cartPage: CartPage;
+  let checkoutPage: CheckoutPage;
 
-    test('should validate checkout form validation', async ({ page }) => {
-        await page.click('[data-test="add-to-cart-sauce-labs-backpack"]');
-        await page.click('.shopping_cart_link');
-        await page.click('[data-test="checkout"]');
-        
-        // Try to continue without filling form
-        await page.click('[data-test="continue"]');
-        await expect(page.locator('[data-test="error"]')).toBeVisible();
-        
-        // Fill only first name and try
-        await page.fill('[data-test="firstName"]', 'John');
-        await page.click('[data-test="continue"]');
-        await expect(page.locator('[data-test="error"]')).toBeVisible();
-        
-        // Fill required fields and verify success
-        await page.fill('[data-test="lastName"]', 'Doe');
-        await page.fill('[data-test="postalCode"]', '12345');
-        await page.click('[data-test="continue"]');
-        await expect(page).toHaveURL(/.*checkout-step-two.html/);
-    });
+  test.beforeEach(async ({ page }) => {
+    loginPage = new LoginPage(page);
+    inventoryPage = new InventoryPage(page);
+    cartPage = new CartPage(page);
+    checkoutPage = new CheckoutPage(page);
 
-    test('should complete full purchase flow', async ({ page }) => {
-        // Add items to cart
-        await page.click('[data-test="add-to-cart-sauce-labs-backpack"]');
-        await page.click('[data-test="add-to-cart-sauce-labs-bike-light"]');
-        
-        // Navigate to cart
-        await page.click('.shopping_cart_link');
-        await expect(page.locator('.cart_item')).toHaveCount(2);
-        
-        // Remove bike light
-        await page.click('[data-test="remove-sauce-labs-bike-light"]');
-        await expect(page.locator('.cart_item')).toHaveCount(1);
-        
-        // Complete checkout
-        await page.click('[data-test="checkout"]');
-        await page.fill('[data-test="firstName"]', 'John');
-        await page.fill('[data-test="lastName"]', 'Doe');
-        await page.fill('[data-test="postalCode"]', '12345');
-        await page.click('[data-test="continue"]');
-        await page.click('[data-test="finish"]');
-        
-        // Verify successful purchase
-        await expect(page.locator('.complete-header')).toHaveText('Thank you for your order!');
-    });
+    await loginPage.goto();
+    await loginPage.login(
+      UserCredentials.STANDARD_USER.username,
+      UserCredentials.STANDARD_USER.password
+    );
+  });
+
+  test('should validate checkout form validation', async () => {
+    await inventoryPage.addItemToCart('Sauce Labs Backpack');
+    await inventoryPage.navigateToCart();
+    await cartPage.proceedToCheckout();
+
+    // Try to continue without filling form
+    await checkoutPage.clickContinue();
+    await expect(checkoutPage.error).toBeVisible();
+
+    // Fill only first name and try
+    await checkoutPage.fillInformation('John', '', '');
+    await checkoutPage.clickContinue();
+    await expect(checkoutPage.error).toBeVisible();
+
+    // Fill required fields and verify success
+    await checkoutPage.fillInformation('John', 'Doe', '12345');
+    await checkoutPage.clickContinue();
+    await expect(checkoutPage.header.page()).toHaveURL(/.*checkout-step-two.html/);
+  });
+
+  test('should complete full purchase flow', async () => {
+    // Add items to cart
+    await inventoryPage.addItemToCart('Sauce Labs Backpack');
+    await inventoryPage.addItemToCart('Sauce Labs Bike Light');
+
+    // Navigate to cart
+    await inventoryPage.navigateToCart();
+    await expect(cartPage.items).toHaveCount(2);
+
+    // Remove bike light
+    await cartPage.removeItem('Sauce Labs Bike Light');
+    await expect(cartPage.items).toHaveCount(1);
+
+    // Complete checkout
+    await cartPage.proceedToCheckout();
+    await checkoutPage.fillInformation('John', 'Doe', '12345');
+    await checkoutPage.clickContinue();
+    await checkoutPage.clickFinish();
+
+    // Verify successful purchase
+    await expect(checkoutPage.header).toHaveText('Thank you for your order!');
+  });
 });

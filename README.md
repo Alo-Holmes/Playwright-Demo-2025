@@ -33,17 +33,20 @@ e2e/
 ## Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/Alo-Holmes/Playwright-Demo-2025.git
 cd Playwright-Demo-2025
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Install Playwright browsers:
+
 ```bash
 npx playwright install
 ```
@@ -51,11 +54,13 @@ npx playwright install
 ## Running Tests
 
 ### Run all tests:
+
 ```bash
 npx playwright test
 ```
 
 ### Run specific test suites:
+
 ```bash
 # Run authentication tests
 npx playwright test e2e/auth/
@@ -68,16 +73,19 @@ npx playwright test e2e/checkout/
 ```
 
 ### Run tests in UI mode:
+
 ```bash
 npx playwright test --ui
 ```
 
 ### Run tests with headed browsers:
+
 ```bash
 npx playwright test --headed
 ```
 
 ### View test report:
+
 ```bash
 npx playwright show-report
 ```
@@ -85,18 +93,21 @@ npx playwright show-report
 ## Test Categories
 
 ### Authentication Tests
+
 - Login page element validation
 - Standard user login
 - Locked out user error handling
 - Invalid credentials validation
 
 ### Product and Cart Tests
+
 - Product sorting functionality
 - Add/remove items from cart
 - Cart badge updates
 - Product details page validation
 
 ### Checkout Tests
+
 - Checkout form validation
 - Complete purchase flow
 - Order confirmation
@@ -104,10 +115,12 @@ npx playwright show-report
 ## CI/CD Integration
 
 This project includes GitHub Actions workflow configuration for continuous integration. Tests are automatically run on:
+
 - Push to main/master branch
 - Pull requests to main/master branch
 
 The workflow:
+
 1. Sets up Node.js environment
 2. Installs dependencies
 3. Installs Playwright browsers
