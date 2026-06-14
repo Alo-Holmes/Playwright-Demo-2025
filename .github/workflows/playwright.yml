@@ -8,6 +8,8 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -53,12 +55,12 @@ jobs:
         path: playwright-report/
         retention-days: 30
 
-    - name: Transmit Test Telemetry
-      if: always() && secrets.PORTFOLIO_API_URL != '' && secrets.PORTFOLIO_API_TOKEN != ''
+    - name: Commit Telemetry Status File
+      if: always()
       run: |
-        if [ -f test-results/summary.json ]; then
-          echo "Transmitting telemetry to external portfolio hub..."
-          curl -X POST -H "Authorization: Bearer ${{ secrets.PORTFOLIO_API_TOKEN }}" -H "Content-Type: application/json" -d @test-results/summary.json ${{ secrets.PORTFOLIO_API_URL }}
-        else
-          echo "No telemetry summary.json found to transmit."
-        fi
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        mkdir -p test-results
+        git add test-results/summary.json || true
+        git commit -m "chore(telemetry): data contract update [skip ci]" --allow-empty
+        git push origin main
